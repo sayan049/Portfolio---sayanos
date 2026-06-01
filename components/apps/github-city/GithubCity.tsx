@@ -296,19 +296,27 @@ function CityGrid({ data, selectedDate, onSelectDay }: { data: ContributionDay[]
 
 function CameraController({ targetPosition }: { targetPosition: THREE.Vector3 | null }) {
   const controlsRef = useRef<any>(null)
+  const [animatingTo, setAnimatingTo] = useState<THREE.Vector3 | null>(null)
+
+  useEffect(() => {
+    if (targetPosition) {
+      setAnimatingTo(targetPosition.clone())
+    }
+  }, [targetPosition])
   
   useFrame((state) => {
-    if (controlsRef.current) {
-      const target = targetPosition || new THREE.Vector3(0, 0, 0)
-      controlsRef.current.target.lerp(target, 0.05)
+    if (controlsRef.current && animatingTo) {
+      controlsRef.current.target.lerp(animatingTo, 0.08)
       
-      if (targetPosition) {
-        // Zoom in close to the building
-        const desiredPos = targetPosition.clone().add(new THREE.Vector3(8, 6, 8))
-        state.camera.position.lerp(desiredPos, 0.05)
-      } else {
-        // Slowly zoom back out to city view
-        state.camera.position.lerp(new THREE.Vector3(30, 25, 40), 0.02)
+      const desiredPos = animatingTo.clone().add(new THREE.Vector3(8, 6, 8))
+      state.camera.position.lerp(desiredPos, 0.08)
+      
+      // Stop animating when close enough so user regains free control
+      if (
+        controlsRef.current.target.distanceTo(animatingTo) < 0.1 &&
+        state.camera.position.distanceTo(desiredPos) < 0.1
+      ) {
+        setAnimatingTo(null)
       }
       
       controlsRef.current.update()
@@ -320,10 +328,9 @@ function CameraController({ targetPosition }: { targetPosition: THREE.Vector3 | 
       ref={controlsRef}
       enablePan={true} 
       maxPolarAngle={Math.PI / 2 - 0.05} 
-      minDistance={5}
+      minDistance={2}
       maxDistance={150}
-      autoRotate={!targetPosition}
-      autoRotateSpeed={0.5}
+      autoRotate={false}
       makeDefault
     />
   )
