@@ -69,6 +69,7 @@ export const DOCK_APPS = [
   { id: 'vscode'          as AppId, label: 'VS Code',        icon: 'code'      },
   { id: 'resume-game'     as AppId, label: 'Game',           icon: 'gamepad-2' },
   { id: 'vision-control'  as AppId, label: 'AI Vision',      icon: 'eye'       },
+  { id: 'github-city'     as AppId, label: 'GitHub City',    icon: 'box'       },
   { id: 'settings'        as AppId, label: 'Settings',       icon: 'settings'  },
 ] as const
 
