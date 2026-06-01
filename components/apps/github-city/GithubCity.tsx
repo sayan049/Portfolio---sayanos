@@ -296,27 +296,25 @@ function CityGrid({ data, selectedDate, onSelectDay }: { data: ContributionDay[]
 
 function CameraController({ targetPosition }: { targetPosition: THREE.Vector3 | null }) {
   const controlsRef = useRef<any>(null)
-  const [animatingTo, setAnimatingTo] = useState<THREE.Vector3 | null>(null)
+  const [animating, setAnimating] = useState<{ target: THREE.Vector3, start: number } | null>(null)
 
   useEffect(() => {
     if (targetPosition) {
-      setAnimatingTo(targetPosition.clone())
+      setAnimating({ target: targetPosition.clone(), start: Date.now() })
     }
   }, [targetPosition])
   
   useFrame((state) => {
-    if (controlsRef.current && animatingTo) {
-      controlsRef.current.target.lerp(animatingTo, 0.08)
+    if (controlsRef.current && animating) {
+      const timePassed = Date.now() - animating.start
       
-      const desiredPos = animatingTo.clone().add(new THREE.Vector3(8, 6, 8))
-      state.camera.position.lerp(desiredPos, 0.08)
-      
-      // Stop animating when close enough so user regains free control
-      if (
-        controlsRef.current.target.distanceTo(animatingTo) < 0.1 &&
-        state.camera.position.distanceTo(desiredPos) < 0.1
-      ) {
-        setAnimatingTo(null)
+      // Animate for 1 second, then yield control back to user
+      if (timePassed < 1000) {
+        controlsRef.current.target.lerp(animating.target, 0.1)
+        const desiredPos = animating.target.clone().add(new THREE.Vector3(8, 6, 8))
+        state.camera.position.lerp(desiredPos, 0.1)
+      } else {
+        setAnimating(null)
       }
       
       controlsRef.current.update()
