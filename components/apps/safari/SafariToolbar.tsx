@@ -33,8 +33,8 @@ export function SafariToolbar() {
       && (finalUrl.includes('.') || finalUrl.startsWith('http'))
 
     if (!looksLikeUrl) {
-      // Search query → Bing (proxy-friendly, unlike DuckDuckGo which blocks server IPs)
-      finalUrl = `https://www.bing.com/search?q=${encodeURIComponent(finalUrl)}`
+      // Search query → Google with inline UI parameter to allow iframe rendering
+      finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}&igu=1`
     } else {
       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
         finalUrl = 'https://' + finalUrl
