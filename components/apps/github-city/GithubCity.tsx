@@ -12,6 +12,17 @@ interface ContributionDay {
   date: string
 }
 
+function getSimulatedTime(dateStr: string) {
+  let hash = 0;
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = dateStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hours = Math.abs(hash) % 24;
+  const minutes = Math.abs(hash >> 2) % 60;
+  const seconds = Math.abs(hash >> 4) % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} TST`;
+}
+
 // ----------------------------------------------------------------------------
 // Procedural Utilities
 // ----------------------------------------------------------------------------
@@ -177,12 +188,17 @@ function Building({ height, baseColor, position, day, isSelected, onSelectDay }:
         <meshStandardMaterial 
           map={texture}
           emissiveMap={texture}
-          emissive={isActive || isSelected ? new THREE.Color(baseColor) : new THREE.Color('#000')}
+          emissive={isSelected ? new THREE.Color('#ffffff') : (isActive ? new THREE.Color(baseColor) : new THREE.Color('#000'))}
           emissiveIntensity={isSelected ? 10 : (isActive ? (hovered ? 4 : (height > 6 ? 2 : 1)) : (hovered ? 0.5 : 0))}
           roughness={0.4}
           metalness={0.6}
         />
       </mesh>
+
+      {/* Extreme glow when selected */}
+      {isSelected && (
+        <pointLight position={[0, height / 2, 0]} intensity={100} color={baseColor} distance={20} />
+      )}
 
       {/* Roof Structure */}
       {isTall && (
@@ -285,6 +301,16 @@ function CameraController({ targetPosition }: { targetPosition: THREE.Vector3 | 
     if (controlsRef.current) {
       const target = targetPosition || new THREE.Vector3(0, 0, 0)
       controlsRef.current.target.lerp(target, 0.05)
+      
+      if (targetPosition) {
+        // Zoom in close to the building
+        const desiredPos = targetPosition.clone().add(new THREE.Vector3(8, 6, 8))
+        state.camera.position.lerp(desiredPos, 0.05)
+      } else {
+        // Slowly zoom back out to city view
+        state.camera.position.lerp(new THREE.Vector3(30, 25, 40), 0.02)
+      }
+      
       controlsRef.current.update()
     }
   })
@@ -387,7 +413,7 @@ export function GithubCity() {
               </div>
               <div>
                 <p className="text-[#00f2fe]/60 text-[9px] uppercase font-mono tracking-widest">Time (Sim)</p>
-                <p className="text-white font-mono text-xs">23:59:59 EOD</p>
+                <p className="text-white font-mono text-xs">{getSimulatedTime(selectedDay.day.date)}</p>
               </div>
             </div>
             
