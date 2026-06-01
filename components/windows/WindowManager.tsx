@@ -19,6 +19,7 @@ const SettingsApp    = dynamic(() => import('@/components/apps/settings/Settings
 const VSCode         = dynamic(() => import('@/components/apps/vscode/VSCode').then(m => ({ default: m.VSCode })),           { ssr: false, loading: () => null })
 const RecruiterAnalytics = dynamic(() => import('@/components/apps/analytics/RecruiterAnalytics').then(m => ({ default: m.RecruiterAnalytics })), { ssr: false, loading: () => null })
 const OfferNegotiator  = dynamic(() => import('@/components/apps/negotiator/OfferNegotiator').then(m => ({ default: m.OfferNegotiator })), { ssr: false, loading: () => null })
+const GithubCity  = dynamic(() => import('@/components/apps/github-city/GithubCity').then(m => ({ default: m.GithubCity })), { ssr: false, loading: () => null })
 
 export function WindowManager() {
   return (
@@ -40,6 +41,7 @@ export function WindowManager() {
         <Window id="vscode"><VSCode /></Window>
         <Window id="analytics"><RecruiterAnalytics /></Window>
         <Window id="negotiator"><OfferNegotiator /></Window>
+        <Window id="github-city"><GithubCity /></Window>
       </div>
     </div>
   )

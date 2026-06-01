@@ -15,6 +15,7 @@ import { StatusWidget } from '@/components/desktop/Widgets/StatusWidget'
 import { Toast } from '@/components/ui/Toast'
 import { AboutModal } from '@/components/os/AboutModal'
 import { CopilotWidget } from '@/components/desktop/CopilotWidget'
+import { LofiPlayerWidget } from '@/components/desktop/Widgets/LofiPlayerWidget'
 
 export function Desktop() {
   const menuRef    = useRef<HTMLDivElement>(null)
@@ -93,6 +94,9 @@ export function Desktop() {
           <ClockWidget />
           <div style={{ marginTop: 8 }}>
             <StatusWidget />
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <LofiPlayerWidget />
           </div>
         </div>
 

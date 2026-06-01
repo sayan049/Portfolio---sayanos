@@ -259,6 +259,17 @@ export function Terminal() {
       setInput(''); history.push(cmd); return
     }
 
+    if (cmd === 'sudo hire sayan') {
+      window.dispatchEvent(new CustomEvent('SYSTEM_HACK'))
+      setLines(prev => [...prev,
+        { id: nextId(), type: 'input',   content: cmd },
+        { id: nextId(), type: 'system',  content: '[SYSTEM] Protocol Omega Initiated.' },
+        { id: nextId(), type: 'success', content: '↳ Decrypting Top Secret Dossier...' },
+        { id: nextId(), type: 'dim',     content: '' },
+      ])
+      setInput(''); history.push(cmd); return
+    }
+
     // ── regular commands ────────────────────────────────────────────────
     const inputLine: TerminalLine = { id: nextId(), type: 'input', content: cmd }
     const result = processCommand(cmd, openApp as (id: AppId) => void, showToast)

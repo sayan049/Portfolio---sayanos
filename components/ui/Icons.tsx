@@ -110,4 +110,11 @@ export const APP_ICONS: Record<AppId, React.ReactNode> = {
       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
     />
   ),
+  'github-city': (
+    <img
+      src={I8('city')}
+      alt="GitHub City"
+      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+    />
+  ),
 }

@@ -14,6 +14,7 @@ export type AppId =
   | 'vision-control'
   | 'analytics'
   | 'negotiator'
+  | 'github-city'
 
 export const APP_NAMES: Record<AppId, string> = {
   'finder':          'Finder',
@@ -31,6 +32,7 @@ export const APP_NAMES: Record<AppId, string> = {
   'vision-control':  'AI Vision Control',
   'analytics':       'Recruiter Analytics',
   'negotiator':      'AI Negotiator',
+  'github-city':     'GitHub City',
 }
 
 export const DEFAULT_WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
@@ -49,6 +51,7 @@ export const DEFAULT_WINDOW_SIZES: Record<AppId, { width: number; height: number
   'vision-control':  { width: 640, height: 480 },
   'analytics':       { width: 840, height: 560 },
   'negotiator':      { width: 440, height: 600 },
+  'github-city':     { width: 800, height: 600 },
 }
 
 export const DOCK_APPS = [
