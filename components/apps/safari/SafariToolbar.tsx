@@ -33,8 +33,8 @@ export function SafariToolbar() {
       && (finalUrl.includes('.') || finalUrl.startsWith('http'))
 
     if (!looksLikeUrl) {
-      // Search query → Bing Search via proxy to allow click interception
-      finalUrl = `/api/proxy?url=${encodeURIComponent('https://www.bing.com/search?q=' + encodeURIComponent(finalUrl))}`
+      // Search query → DuckDuckGo Lite via proxy (bypasses bot protections and allows click interception)
+      finalUrl = `/api/proxy?url=${encodeURIComponent('https://lite.duckduckgo.com/lite/?q=' + encodeURIComponent(finalUrl))}`
     } else {
       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
         finalUrl = 'https://' + finalUrl

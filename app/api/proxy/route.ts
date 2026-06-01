@@ -122,10 +122,25 @@ export async function GET(req: NextRequest) {
     // Insert right after <head>
     const headStartIdx = html.indexOf('<head')
     const headTagEnd   = html.indexOf('>', headStartIdx)
+
+    let finalInjections = interceptScript
+    if (url.includes('lite.duckduckgo.com')) {
+      finalInjections += `
+<style>
+  body, html { background: #1a1a1a !important; color: #f0f0f0 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }
+  a { color: #4FC3F7 !important; text-decoration: none !important; }
+  a:hover { text-decoration: underline !important; }
+  input[type="text"] { background: #2a2a2a !important; color: white !important; border: 1px solid #4FC3F7 !important; border-radius: 4px !important; padding: 4px 8px !important; }
+  input[type="submit"] { background: #4FC3F7 !important; color: black !important; border: none !important; border-radius: 4px !important; padding: 4px 12px !important; cursor: pointer !important; font-weight: bold !important; }
+  .result-snippet { color: #a0a0a0 !important; }
+  .result-url { color: #4FC3F7 !important; opacity: 0.7; font-size: 12px; }
+</style>`
+    }
+
     if (headTagEnd !== -1) {
-      html = html.substring(0, headTagEnd + 1) + interceptScript + html.substring(headTagEnd + 1)
+      html = html.substring(0, headTagEnd + 1) + finalInjections + html.substring(headTagEnd + 1)
     } else {
-      html = interceptScript + html
+      html = finalInjections + html
     }
 
     return new NextResponse(html, {
