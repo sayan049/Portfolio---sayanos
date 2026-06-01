@@ -95,10 +95,10 @@ export function Desktop() {
           <div style={{ marginTop: 8 }}>
             <StatusWidget />
           </div>
-          <div style={{ marginTop: 8 }}>
-            <LofiPlayerWidget />
-          </div>
         </div>
+
+        {/* Lofi / Spotify Player Widget */}
+        <LofiPlayerWidget />
 
         {/* Windows */}
         <WindowManager />

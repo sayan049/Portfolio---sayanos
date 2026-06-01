@@ -1,140 +1,102 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function HackSequence() {
   const [active, setActive] = useState(false)
-  const [showDossier, setShowDossier] = useState(false)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const handleHack = () => {
       setActive(true)
       
-      // Start matrix rain
+      // Auto-recover after 8 seconds
       setTimeout(() => {
-        initMatrix()
-      }, 500)
-
-      // Show dossier after 4 seconds
-      setTimeout(() => {
-        setShowDossier(true)
-      }, 4000)
+        setActive(false)
+      }, 8000)
     }
 
     window.addEventListener('SYSTEM_HACK', handleHack)
     return () => window.removeEventListener('SYSTEM_HACK', handleHack)
   }, [])
 
-  const initMatrix = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-
-    const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const fontSize = 16
-    const columns = canvas.width / fontSize
-    const drops: number[] = []
-    
-    for(let x = 0; x < columns; x++) {
-      drops[x] = 1
-    }
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      
-      ctx.fillStyle = '#0F0'
-      ctx.font = fontSize + 'px monospace'
-      
-      for(let i = 0; i < drops.length; i++) {
-        const text = chars.charAt(Math.floor(Math.random() * chars.length))
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize)
-        
-        if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0
-        }
-        drops[i]++
-      }
-    }
-
-    const interval = setInterval(draw, 33)
-    return () => clearInterval(interval)
-  }
-
-  const handleClose = () => {
-    setActive(false)
-    setShowDossier(false)
-  }
-
   if (!active) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-auto">
-      {/* Glitch Overlay */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black"
-      >
-        <canvas ref={canvasRef} className="absolute inset-0" />
-      </motion.div>
-
+    <div className="fixed inset-0 z-[9999] pointer-events-auto overflow-hidden">
       <AnimatePresence>
-        {showDossier && (
+        {active && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: 50 }}
-            transition={{ type: 'spring', damping: 15 }}
-            className="absolute inset-0 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           >
-            <div className="max-w-2xl w-full bg-black/90 border border-green-500 shadow-[0_0_50px_rgba(0,255,0,0.2)] rounded-lg overflow-hidden backdrop-blur-xl">
-              <div className="bg-green-500/20 px-4 py-2 border-b border-green-500/50 flex justify-between items-center">
-                <span className="text-green-500 font-mono font-bold uppercase tracking-widest text-sm">Top Secret Dossier</span>
-                <button onClick={handleClose} className="text-green-500 hover:text-white hover:bg-red-500 px-2 rounded font-mono">
-                  [X] ABORT
-                </button>
-              </div>
-              <div className="p-8 font-mono text-green-400 space-y-4">
-                <h1 className="text-3xl font-black text-white mb-6 uppercase tracking-tighter">Why Sayan Patra?</h1>
-                
-                <div className="space-y-4">
-                  <p>{'>'} SYSTEM SCAN COMPLETE.</p>
-                  <p>{'>'} MATCH FOUND: HIGHLY SKILLED ENGINEER.</p>
-                  
-                  <div className="pl-4 border-l-2 border-green-500/50 space-y-2 mt-4 text-sm">
-                    <p>1. Built this entire OS portfolio from scratch using Next.js.</p>
-                    <p>2. Master of React, Framer Motion, and GSAP.</p>
-                    <p>3. Excellent problem solver with a deep understanding of architecture.</p>
-                    <p>4. Fun to work with, highly creative, and driven by passion.</p>
-                  </div>
+            {/* Melting screen bars */}
+            <div className="absolute inset-0 flex flex-col melting-container">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className="flex-1 bg-black/60 w-full glitch-bar"
+                  style={{ 
+                    animationDelay: `${Math.random() * 0.5}s`,
+                    height: `${Math.random() * 10 + 2}%`
+                  }} 
+                />
+              ))}
+            </div>
 
-                  <p className="mt-8 animate-pulse text-white">{'>'} ACTION REQUIRED: INITIATE JOB OFFER PROTOCOL.</p>
-                </div>
+            {/* Kernel Panic Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none mix-blend-screen">
+              <div className="text-red-500 font-mono text-center glitch-text">
+                <h1 className="text-5xl md:text-8xl font-black mb-4 tracking-tighter uppercase">FATAL ERROR</h1>
+                <p className="text-xl md:text-2xl opacity-80">KERNEL PANIC - NOT SYNCING</p>
+                <p className="text-sm opacity-50 mt-2">VFS: Unable to mount root fs on unknown-block(0,0)</p>
               </div>
             </div>
+
+            {/* Scanlines */}
+            <div className="absolute inset-0 pointer-events-none bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWP4////fwYA4+PjA34N3wwAAAAASUVORK5CYII=')] opacity-20" />
           </motion.div>
         )}
       </AnimatePresence>
 
       <style jsx global>{`
         body {
-          animation: ${active ? 'glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite' : 'none'};
+          animation: global-glitch 0.2s linear infinite;
         }
-        @keyframes glitch-skew {
-          0% { transform: skew(0deg); }
-          20% { transform: skew(-5deg); }
-          40% { transform: skew(5deg); }
-          60% { transform: skew(-2deg); }
-          80% { transform: skew(2deg); }
-          100% { transform: skew(0deg); }
+        .melting-container {
+          filter: contrast(20) blur(2px);
+          animation: melt-down 4s ease-in forwards;
+        }
+        .glitch-bar {
+          animation: slide-glitch 0.1s linear infinite;
+          transform-origin: left;
+        }
+        .glitch-text {
+          animation: rgb-split 0.1s steps(2) infinite;
+          text-shadow: 2px 0 blue, -2px 0 red;
+        }
+        @keyframes melt-down {
+          0% { transform: translateY(0) scaleY(1); opacity: 1; }
+          20% { transform: translateY(2%) scaleY(1.1); }
+          50% { transform: translateY(10%) scaleY(1.5); filter: blur(5px); }
+          100% { transform: translateY(100%) scaleY(3); filter: blur(10px); opacity: 0; }
+        }
+        @keyframes slide-glitch {
+          0% { transform: translateX(-1%) skewX(10deg); }
+          50% { transform: translateX(1%) skewX(-10deg); background-color: rgba(255,0,0,0.2); }
+          100% { transform: translateX(-1%) skewX(10deg); }
+        }
+        @keyframes rgb-split {
+          0% { text-shadow: 4px 0 #0ff, -4px 0 #f00; transform: translate(1px, 1px); }
+          50% { text-shadow: -4px 0 #0ff, 4px 0 #f00; transform: translate(-1px, -1px); }
+          100% { text-shadow: 4px 0 #0ff, -4px 0 #f00; transform: translate(1px, 1px); }
+        }
+        @keyframes global-glitch {
+          0% { filter: hue-rotate(0deg) saturate(100%); }
+          50% { filter: hue-rotate(90deg) saturate(200%); }
+          100% { filter: hue-rotate(0deg) saturate(100%); }
         }
       `}</style>
     </div>

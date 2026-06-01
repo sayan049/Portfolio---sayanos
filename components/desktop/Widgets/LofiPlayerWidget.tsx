@@ -1,165 +1,108 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Search, Music, X } from 'lucide-react'
 
 export function LofiPlayerWidget() {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const audioCtxRef = useRef<AudioContext | null>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(null)
 
-  const togglePlay = () => {
-    if (!audioRef.current) return
-    
-    if (isPlaying) {
-      audioRef.current.pause()
-      setIsPlaying(false)
-    } else {
-      audioRef.current.play()
-      setIsPlaying(true)
-
-      // Initialize Web Audio API on first play
-      if (!audioCtxRef.current) {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
-        const analyser = ctx.createAnalyser()
-        const source = ctx.createMediaElementSource(audioRef.current)
-        
-        source.connect(analyser)
-        analyser.connect(ctx.destination)
-        
-        analyser.fftSize = 64
-        
-        audioCtxRef.current = ctx
-        analyserRef.current = analyser
-        sourceRef.current = source
+  const searchSpotify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!query.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/spotify?q=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      if (data.tracks?.items) {
+        setResults(data.tracks.items)
+      } else if (data.error) {
+        alert("Spotify API Error: " + data.error + "\\nMake sure you added SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to .env.local")
       }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
   }
-
-  useEffect(() => {
-    let animationId: number
-    
-    const draw = () => {
-      animationId = requestAnimationFrame(draw)
-      const canvas = canvasRef.current
-      const analyser = analyserRef.current
-      if (!canvas || !analyser) return
-
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
-      const bufferLength = analyser.frequencyBinCount
-      const dataArray = new Uint8Array(bufferLength)
-      analyser.getByteFrequencyData(dataArray)
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      const barWidth = (canvas.width / bufferLength) * 2.5
-      let x = 0
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * canvas.height
-        
-        // Gradient color
-        const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
-        gradient.addColorStop(0, '#4fc3f7')
-        gradient.addColorStop(1, '#ff0055')
-        
-        ctx.fillStyle = gradient
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight)
-        
-        x += barWidth + 2
-      }
-    }
-
-    if (isPlaying) draw()
-    
-    return () => {
-      if (animationId) cancelAnimationFrame(animationId)
-    }
-  }, [isPlaying])
 
   return (
     <motion.div 
       drag
       dragMomentum={false}
-      className="absolute top-12 right-6 w-72 rounded-2xl overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing border border-white/10"
+      className="absolute top-16 left-6 w-80 rounded-2xl overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing border border-white/10 flex flex-col"
       style={{
-        background: 'rgba(20, 20, 30, 0.65)',
+        background: 'rgba(20, 20, 30, 0.85)',
         backdropFilter: 'blur(40px) saturate(200%)',
         WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+        maxHeight: '400px'
       }}
     >
-      {/* Invisible Audio Element */}
-      {/* Using a reliable royalty-free lofi track from Pixabay for demo purposes */}
-      <audio 
-        ref={audioRef} 
-        src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" 
-        loop
-        crossOrigin="anonymous"
-      />
-
-      <div className="p-4 flex items-center gap-4">
-        {/* Spinning Vinyl */}
-        <div 
-          className="w-16 h-16 rounded-full border-4 border-gray-900 flex items-center justify-center relative shadow-lg overflow-hidden shrink-0"
-          style={{
-            background: 'conic-gradient(from 0deg, #111, #333, #111, #333, #111)',
-            animation: isPlaying ? 'spin 4s linear infinite' : 'none'
-          }}
-        >
-          {/* Label */}
-          <div className="w-6 h-6 rounded-full bg-[#ff0055] border-2 border-gray-900 z-10" />
-          {/* Shine */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 pointer-events-none" />
+      {/* Header & Search */}
+      <div className="p-4 border-b border-white/10 bg-black/20">
+        <div className="flex items-center gap-2 mb-3">
+          <Music size={16} className="text-[#1DB954]" />
+          <h3 className="text-white font-bold text-sm tracking-wide pointer-events-none">Spotify Player</h3>
         </div>
-
-        {/* Info & Controls */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-white font-bold truncate text-sm">Coding Beats</h3>
-          <p className="text-[#4fc3f7] text-xs font-mono truncate mb-2">Lofi Hip Hop</p>
-          
-          <button 
-            onClick={togglePlay}
-            className="bg-white/10 hover:bg-white/20 text-white rounded-full px-4 py-1.5 text-xs font-bold tracking-widest transition-colors flex items-center gap-2"
-          >
-            {isPlaying ? (
-              <>
-                <div className="w-2 h-2 bg-[#ff0055] rounded-sm" /> PAUSE
-              </>
-            ) : (
-              <>
-                <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-[#00e676] border-b-4 border-b-transparent" /> PLAY
-              </>
-            )}
-          </button>
-        </div>
+        <form onSubmit={searchSpotify} className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()} // Allow clicking/typing without dragging
+            placeholder="Search songs..."
+            className="w-full bg-white/10 border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#1DB954]/50 transition-colors"
+          />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+        </form>
       </div>
 
-      {/* Visualizer Canvas */}
-      <div className="h-12 bg-black/20 w-full relative">
-        <canvas 
-          ref={canvasRef} 
-          className="absolute inset-0 w-full h-full"
-          width={288}
-          height={48}
-        />
-        {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-[10px] text-white/30 font-mono tracking-widest">VISUALIZER OFF</span>
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto min-h-[160px] custom-scrollbar" onPointerDown={(e) => e.stopPropagation()}>
+        {activeTrackId ? (
+          <div className="relative w-full h-full bg-black/50 p-2">
+            <button 
+              onClick={() => setActiveTrackId(null)}
+              className="absolute -top-2 -right-2 z-10 bg-[#1A1A21] p-1.5 border border-white/10 rounded-full text-white/60 hover:text-white hover:bg-black transition-colors"
+            >
+              <X size={14} />
+            </button>
+            <iframe 
+              src={`https://open.spotify.com/embed/track/${activeTrackId}?utm_source=generator&theme=0`} 
+              width="100%" 
+              height="152" 
+              frameBorder="0" 
+              allowFullScreen 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+        ) : (
+          <div className="p-2 space-y-1">
+            {loading && <p className="text-xs text-center text-white/50 py-4 animate-pulse">Searching...</p>}
+            {!loading && results.length === 0 && (
+              <p className="text-xs text-center text-white/30 py-6 font-mono">Search for a track to play</p>
+            )}
+            {results.map(track => (
+              <button
+                key={track.id}
+                onClick={() => setActiveTrackId(track.id)}
+                className="w-full text-left flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg transition-colors group"
+              >
+                <img src={track.album.images[2]?.url || track.album.images[0]?.url} alt="" className="w-10 h-10 rounded shadow-md group-hover:scale-105 transition-transform" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-semibold truncate">{track.name}</p>
+                  <p className="text-white/50 text-xs truncate">{track.artists.map((a: any) => a.name).join(', ')}</p>
+                </div>
+              </button>
+            ))}
           </div>
         )}
       </div>
-
-      <style jsx global>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </motion.div>
   )
 }
