@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useEffect, useState, useMemo, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -10,6 +10,245 @@ interface ContributionDay {
   contributionCount: number
   contributionLevel: string
   date: string
+}
+
+// ----------------------------------------------------------------------------
+// Procedural Utilities
+// ----------------------------------------------------------------------------
+function generateWindowTexture(baseColor: string, isActive: boolean) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 256
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return new THREE.Texture()
+
+  // Base building color
+  ctx.fillStyle = '#0a0a0c'
+  ctx.fillRect(0, 0, 128, 256)
+
+  if (isActive) {
+    const rows = 12
+    const cols = 6
+    const windowWidth = 10
+    const windowHeight = 12
+    const gapX = (128 - (cols * windowWidth)) / (cols + 1)
+    const gapY = (256 - (rows * windowHeight)) / (rows + 1)
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Only some windows are lit
+        if (Math.random() > 0.5) {
+          ctx.fillStyle = baseColor
+          ctx.shadowColor = baseColor
+          ctx.shadowBlur = 8
+        } else {
+          ctx.fillStyle = '#111'
+          ctx.shadowBlur = 0
+        }
+        ctx.fillRect(
+          gapX + c * (windowWidth + gapX),
+          gapY + r * (windowHeight + gapY),
+          windowWidth,
+          windowHeight
+        )
+      }
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  // Apply a slight pixelated filter for a cyberpunk vibe
+  texture.magFilter = THREE.NearestFilter 
+  return texture
+}
+
+// ----------------------------------------------------------------------------
+// Components
+// ----------------------------------------------------------------------------
+
+function TrafficSystem({ boundsX, boundsZ }: { boundsX: number, boundsZ: number }) {
+  const trafficCount = 150
+  const instances = useMemo(() => {
+    return Array.from({ length: trafficCount }).map(() => ({
+      position: new THREE.Vector3(
+        (Math.random() - 0.5) * boundsX,
+        Math.random() * 2 + 0.2, // Float slightly above ground
+        (Math.random() - 0.5) * boundsZ
+      ),
+      speed: Math.random() * 0.3 + 0.1,
+      axis: Math.random() > 0.5 ? 'x' : 'z',
+      dir: Math.random() > 0.5 ? 1 : -1,
+      color: Math.random() > 0.5 ? '#00f2fe' : '#ff0055'
+    }))
+  }, [boundsX, boundsZ])
+
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+
+  useFrame(() => {
+    if (!meshRef.current) return
+    const dummy = new THREE.Object3D()
+    
+    instances.forEach((inst, i) => {
+      // Move traffic
+      if (inst.axis === 'x') {
+        inst.position.x += inst.speed * inst.dir
+        if (inst.position.x > boundsX / 2) inst.position.x = -boundsX / 2
+        if (inst.position.x < -boundsX / 2) inst.position.x = boundsX / 2
+      } else {
+        inst.position.z += inst.speed * inst.dir
+        if (inst.position.z > boundsZ / 2) inst.position.z = -boundsZ / 2
+        if (inst.position.z < -boundsZ / 2) inst.position.z = boundsZ / 2
+      }
+
+      dummy.position.copy(inst.position)
+      // Make them thin and long like light streaks (cyberpunk trails)
+      if (inst.axis === 'x') {
+        dummy.scale.set(1.5, 0.05, 0.05)
+      } else {
+        dummy.scale.set(0.05, 0.05, 1.5)
+      }
+      dummy.updateMatrix()
+      meshRef.current!.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  })
+
+  // Setup instance colors
+  useEffect(() => {
+    if (!meshRef.current) return
+    const color = new THREE.Color()
+    const colorArray = new Float32Array(trafficCount * 3)
+    instances.forEach((inst, i) => {
+      color.set(inst.color)
+      // Boost intensity for bloom
+      color.multiplyScalar(2) 
+      color.toArray(colorArray, i * 3)
+    })
+    meshRef.current.geometry.setAttribute('color', new THREE.InstancedBufferAttribute(colorArray, 3))
+  }, [instances])
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, trafficCount]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+    </instancedMesh>
+  )
+}
+
+function Building({ height, baseColor, position }: { height: number, baseColor: string, position: [number, number, number] }) {
+  const isActive = height > 0.5
+  const isTall = height > 5
+  const hasAntenna = height > 8 && Math.random() > 0.5
+  
+  // Memoize texture so we don't recreate canvas on every render
+  const texture = useMemo(() => {
+    const tex = generateWindowTexture(baseColor, isActive)
+    tex.repeat.set(1, Math.max(1, height / 2)) // Repeat vertically based on height
+    return tex
+  }, [baseColor, height, isActive])
+
+  return (
+    <group position={position}>
+      {/* Main Building Body */}
+      <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1, height, 1]} />
+        <meshStandardMaterial 
+          map={texture}
+          emissiveMap={texture}
+          emissive={isActive ? new THREE.Color(baseColor) : new THREE.Color('#000')}
+          emissiveIntensity={isActive ? (height > 6 ? 2 : 1) : 0}
+          roughness={0.4}
+          metalness={0.6}
+        />
+      </mesh>
+
+      {/* Roof Structure */}
+      {isTall && (
+        <mesh position={[0, height + 0.2, 0]} castShadow>
+          <boxGeometry args={[0.6, 0.4, 0.6]} />
+          <meshStandardMaterial color="#111" roughness={0.9} />
+        </mesh>
+      )}
+
+      {/* Antenna */}
+      {hasAntenna && (
+        <mesh position={[0, height + 1.5, 0]}>
+          <cylinderGeometry args={[0.02, 0.05, 2]} />
+          <meshStandardMaterial color="#333" metalness={1} />
+          {/* Antenna glowing tip */}
+          <mesh position={[0, 1, 0]}>
+            <sphereGeometry args={[0.1]} />
+            <meshBasicMaterial color="#ff0055" toneMapped={false} />
+          </mesh>
+        </mesh>
+      )}
+    </group>
+  )
+}
+
+function CityGrid({ data }: { data: ContributionDay[][] }) {
+  const weeks = data.length
+  const days = 7
+  const spacing = 1.5 // wider streets for traffic
+  
+  const offsetX = (weeks * spacing) / 2
+  const offsetZ = (days * spacing) / 2
+
+  return (
+    <group position={[-offsetX, 0, -offsetZ]}>
+      {/* Base Platform */}
+      <mesh position={[offsetX, -0.5, offsetZ]} receiveShadow>
+        <boxGeometry args={[weeks * spacing + 10, 1, days * spacing + 10]} />
+        <meshStandardMaterial color="#050508" roughness={1} metalness={0.2} />
+      </mesh>
+      
+      {/* City Grid overlay */}
+      <gridHelper 
+        args={[weeks * spacing + 10, weeks, '#111111', '#111111']} 
+        position={[offsetX, 0.01, offsetZ]} 
+      />
+
+      {/* Grid of Buildings */}
+      {data.map((week, wIdx) => 
+        week.map((day, dIdx) => {
+          if (day.contributionCount === 0) {
+            return (
+              <Building 
+                key={`${wIdx}-${dIdx}`} 
+                height={0.2} 
+                baseColor="#111" 
+                position={[wIdx * spacing, 0, dIdx * spacing]} 
+              />
+            )
+          }
+
+          const height = Math.min(Math.max(day.contributionCount * 0.8, 1), 14)
+          const colorMap: Record<string, string> = {
+            '#9be9a8': '#0f4b33', // level 1
+            '#40c463': '#1d9354', // level 2
+            '#30a14e': '#2be079', // level 3
+            '#216e39': '#4fffa5', // level 4
+          }
+          const baseColor = colorMap[day.color] || '#4fffa5'
+
+          return (
+            <Building 
+              key={`${wIdx}-${dIdx}`} 
+              height={height} 
+              baseColor={baseColor} 
+              position={[wIdx * spacing, 0, dIdx * spacing]} 
+            />
+          )
+        })
+      )}
+
+      {/* Traffic System overlaying the city */}
+      <group position={[offsetX, 0, offsetZ]}>
+        <TrafficSystem boundsX={weeks * spacing + 5} boundsZ={days * spacing + 5} />
+      </group>
+    </group>
+  )
 }
 
 export function GithubCity() {
@@ -35,47 +274,55 @@ export function GithubCity() {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#09090C] text-emerald-400 font-mono">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#050508] text-emerald-400 font-mono">
         <div className="animate-pulse flex space-x-2">
           <div className="w-4 h-4 bg-emerald-500 rounded-sm"></div>
           <div className="w-4 h-4 bg-emerald-500 rounded-sm animation-delay-200"></div>
           <div className="w-4 h-4 bg-emerald-500 rounded-sm animation-delay-400"></div>
         </div>
-        <p className="mt-4 text-sm tracking-widest uppercase">Fetching Commits...</p>
+        <p className="mt-4 text-sm tracking-widest uppercase">Initializing City Protocol...</p>
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-[#09090C] text-red-500 font-mono">
+      <div className="w-full h-full flex items-center justify-center bg-[#050508] text-red-500 font-mono">
         Failed to load GitHub data.
       </div>
     )
   }
 
   return (
-    <div className="w-full h-full bg-[#050508] relative overflow-hidden flex flex-col">
+    <div className="w-full h-full bg-[#030305] relative overflow-hidden flex flex-col">
       <div className="absolute top-6 left-6 z-10 pointer-events-none">
-        <h2 className="text-3xl font-black text-white drop-shadow-lg tracking-tighter">COMMIT.CITY</h2>
-        <p className="text-emerald-400 font-mono text-sm mt-1 bg-black/50 px-2 py-1 inline-block rounded">
+        <h2 className="text-3xl font-black text-white drop-shadow-[0_0_10px_rgba(0,255,150,0.5)] tracking-tighter">COMMIT.CITY</h2>
+        <p className="text-emerald-400 font-mono text-sm mt-1 bg-black/80 px-2 py-1 inline-block rounded border border-emerald-500/20 backdrop-blur-md">
           {total} Contributions // Past Year
         </p>
       </div>
 
-      <div className="absolute bottom-6 right-6 z-10 pointer-events-none bg-black/50 px-3 py-2 rounded-lg border border-white/10 backdrop-blur-md">
-        <p className="text-white/60 font-mono text-xs">Drag to Rotate • Scroll to Zoom</p>
+      <div className="absolute bottom-6 right-6 z-10 pointer-events-none bg-black/80 px-3 py-2 rounded-lg border border-white/10 backdrop-blur-md">
+        <p className="text-white/60 font-mono text-xs tracking-widest uppercase">Drag: Orbit • Scroll: Zoom</p>
       </div>
 
       <Canvas
-        camera={{ position: [40, 40, 40], fov: 35 }}
-        gl={{ antialias: true }}
+        camera={{ position: [30, 25, 40], fov: 35 }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
       >
-        <color attach="background" args={['#050508']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
-        <spotLight position={[-10, 20, 20]} angle={0.3} penumbra={1} intensity={1} color="#00f2fe" />
-        <spotLight position={[20, 20, -10]} angle={0.3} penumbra={1} intensity={1} color="#ff0055" />
+        <color attach="background" args={['#030305']} />
+        
+        {/* Cyberpunk Fog */}
+        <fogExp2 attach="fog" color="#030305" density={0.015} />
+
+        {/* Ambient & Directed Lights */}
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[10, 30, 10]} intensity={1} castShadow />
+        
+        {/* Neon City Spotlights */}
+        <spotLight position={[-20, 20, 20]} angle={0.5} penumbra={1} intensity={500} color="#00f2fe" distance={100} />
+        <spotLight position={[20, 20, -20]} angle={0.5} penumbra={1} intensity={500} color="#ff0055" distance={100} />
+        <spotLight position={[0, -10, 0]} angle={1} penumbra={1} intensity={100} color="#4fffa5" distance={50} />
         
         <Suspense fallback={null}>
           <CityGrid data={data} />
@@ -83,75 +330,14 @@ export function GithubCity() {
         </Suspense>
 
         <OrbitControls 
-          enablePan={false} 
-          maxPolarAngle={Math.PI / 2 - 0.1}
-          minDistance={20}
-          maxDistance={100}
+          enablePan={true} 
+          maxPolarAngle={Math.PI / 2 - 0.05} // prevent going fully under the floor
+          minDistance={10}
+          maxDistance={120}
+          autoRotate={true}
+          autoRotateSpeed={0.5}
         />
       </Canvas>
     </div>
-  )
-}
-
-function CityGrid({ data }: { data: ContributionDay[][] }) {
-  const weeks = data.length
-  const days = 7
-  const spacing = 1.2
-  
-  // Center the city
-  const offsetX = (weeks * spacing) / 2
-  const offsetZ = (days * spacing) / 2
-
-  // Pre-calculate instances for performance, or just render boxes
-  // Since it's ~365 boxes, we can just render individual meshes without instancing for simplicity,
-  // but let's use a nice glowing material.
-
-  return (
-    <group position={[-offsetX, 0, -offsetZ]}>
-      {/* Base Platform */}
-      <mesh position={[offsetX, -1, offsetZ]} receiveShadow>
-        <boxGeometry args={[weeks * spacing + 2, 2, days * spacing + 2]} />
-        <meshStandardMaterial color="#0a0a12" roughness={0.8} />
-      </mesh>
-
-      {/* Grid of Buildings */}
-      {data.map((week, wIdx) => 
-        week.map((day, dIdx) => {
-          if (day.contributionCount === 0) {
-            // Empty plot (very short, dark box)
-            return (
-              <mesh key={`${wIdx}-${dIdx}`} position={[wIdx * spacing, 0.1, dIdx * spacing]}>
-                <boxGeometry args={[1, 0.2, 1]} />
-                <meshStandardMaterial color="#111116" roughness={0.9} />
-              </mesh>
-            )
-          }
-
-          // Active building
-          const height = Math.min(Math.max(day.contributionCount * 0.8, 1), 12)
-          // Map standard github colors to neon cyberpunk colors
-          const colorMap: Record<string, string> = {
-            '#9be9a8': '#0f4b33', // level 1
-            '#40c463': '#1d9354', // level 2
-            '#30a14e': '#2be079', // level 3
-            '#216e39': '#4fffa5', // level 4
-          }
-          const baseColor = colorMap[day.color] || '#4fffa5'
-
-          return (
-            <mesh key={`${wIdx}-${dIdx}`} position={[wIdx * spacing, height / 2, dIdx * spacing]} castShadow receiveShadow>
-              <boxGeometry args={[0.9, height, 0.9]} />
-              <meshStandardMaterial 
-                color={baseColor} 
-                emissive={baseColor}
-                emissiveIntensity={height > 4 ? 0.8 : 0.2}
-                roughness={0.2}
-                metalness={0.8}
-              />
-            </mesh>
-          )
-        })
-      )}
-    </group>
   )
 }
