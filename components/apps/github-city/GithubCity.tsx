@@ -136,10 +136,16 @@ function TrafficSystem({ boundsX, boundsZ }: { boundsX: number, boundsZ: number 
   )
 }
 
-function Building({ height, baseColor, position }: { height: number, baseColor: string, position: [number, number, number] }) {
+function Building({ height, baseColor, position, day, onSelectDay }: { height: number, baseColor: string, position: [number, number, number], day: ContributionDay, onSelectDay: (day: ContributionDay) => void }) {
+  const [hovered, setHovered] = useState(false)
   const isActive = height > 0.5
   const isTall = height > 5
   const hasAntenna = height > 8 && Math.random() > 0.5
+  
+  useEffect(() => {
+    document.body.style.cursor = hovered ? 'pointer' : 'auto'
+    return () => { document.body.style.cursor = 'auto' }
+  }, [hovered])
   
   // Memoize texture so we don't recreate canvas on every render
   const texture = useMemo(() => {
@@ -149,7 +155,18 @@ function Building({ height, baseColor, position }: { height: number, baseColor: 
   }, [baseColor, height, isActive])
 
   return (
-    <group position={position}>
+    <group 
+      position={position}
+      onClick={(e) => {
+        e.stopPropagation()
+        onSelectDay(day)
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
+      onPointerOut={() => setHovered(false)}
+    >
       {/* Main Building Body */}
       <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[1, height, 1]} />
@@ -157,7 +174,7 @@ function Building({ height, baseColor, position }: { height: number, baseColor: 
           map={texture}
           emissiveMap={texture}
           emissive={isActive ? new THREE.Color(baseColor) : new THREE.Color('#000')}
-          emissiveIntensity={isActive ? (height > 6 ? 2 : 1) : 0}
+          emissiveIntensity={isActive ? (hovered ? 4 : (height > 6 ? 2 : 1)) : (hovered ? 0.5 : 0)}
           roughness={0.4}
           metalness={0.6}
         />
@@ -187,7 +204,7 @@ function Building({ height, baseColor, position }: { height: number, baseColor: 
   )
 }
 
-function CityGrid({ data }: { data: ContributionDay[][] }) {
+function CityGrid({ data, onSelectDay }: { data: ContributionDay[][], onSelectDay: (day: ContributionDay) => void }) {
   const weeks = data.length
   const days = 7
   const spacing = 1.5 // wider streets for traffic
@@ -219,6 +236,8 @@ function CityGrid({ data }: { data: ContributionDay[][] }) {
                 height={0.2} 
                 baseColor="#111" 
                 position={[wIdx * spacing, 0, dIdx * spacing]} 
+                day={day}
+                onSelectDay={onSelectDay}
               />
             )
           }
@@ -238,6 +257,8 @@ function CityGrid({ data }: { data: ContributionDay[][] }) {
               height={height} 
               baseColor={baseColor} 
               position={[wIdx * spacing, 0, dIdx * spacing]} 
+              day={day}
+              onSelectDay={onSelectDay}
             />
           )
         })
@@ -255,6 +276,7 @@ export function GithubCity() {
   const [data, setData] = useState<ContributionDay[][] | null>(null)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [selectedDay, setSelectedDay] = useState<ContributionDay | null>(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -306,6 +328,39 @@ export function GithubCity() {
         <p className="text-white/60 font-mono text-xs tracking-widest uppercase">Drag: Orbit • Scroll: Zoom</p>
       </div>
 
+      {/* Selected Day Info Panel */}
+      {selectedDay && (
+        <div className="absolute top-6 right-6 z-10 bg-black/80 backdrop-blur-md border border-[#00f2fe]/30 p-4 rounded-xl shadow-[0_0_20px_rgba(0,242,254,0.15)] min-w-[200px]">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-[#00f2fe] font-mono text-xs tracking-widest uppercase">Sector Data</h3>
+            <button 
+              onClick={() => setSelectedDay(null)}
+              className="text-white/50 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className="text-white/40 text-[10px] uppercase font-mono">Date Cycle</p>
+              <p className="text-white font-mono text-sm">{new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+            </div>
+            <div>
+              <p className="text-white/40 text-[10px] uppercase font-mono">Energy Output</p>
+              <p className="text-emerald-400 font-black text-2xl">
+                {selectedDay.contributionCount} <span className="text-sm font-normal text-white/60">Commits</span>
+              </p>
+            </div>
+            <div className="w-full h-1 bg-white/10 rounded overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-[#00f2fe] to-[#ff0055]" 
+                style={{ width: `${Math.min(100, (selectedDay.contributionCount / 15) * 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <Canvas
         camera={{ position: [30, 25, 40], fov: 35 }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
@@ -325,7 +380,7 @@ export function GithubCity() {
         <spotLight position={[0, -10, 0]} angle={1} penumbra={1} intensity={100} color="#4fffa5" distance={50} />
         
         <Suspense fallback={null}>
-          <CityGrid data={data} />
+          <CityGrid data={data} onSelectDay={setSelectedDay} />
           <Environment preset="city" />
         </Suspense>
 

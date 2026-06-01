@@ -168,3 +168,32 @@ Import trace for requested module:
 ./components/os/OSRoot.tsx
  ✓ Compiled in 286ms (3268 modules)
  ✓ Compiled in 457ms (3268 modules)
+ ⨯ ./components/apps/github-city/GithubCity.tsx
+Error: 
+  [31mx[0m the name `hasAntenna` is defined multiple times
+     ,-[[36;1;4m/Users/sayanpatra/Desktop/project/sayanos/components/apps/github-city/GithubCity.tsx[0m:140:1]
+ [2m140[0m |   const [hovered, setHovered] = useState(false)
+ [2m141[0m |   const isActive = height > 0.5
+ [2m142[0m |   const isTall = height > 5
+ [2m143[0m |   const hasAntenna = height > 8 && Math.random() > 0.5
+     : [31;1m        ^^^^^|^^^^[0m
+     :              [31;1m`-- [31;1mprevious definition of `hasAntenna` here[0m[0m
+ [2m144[0m |   
+ [2m145[0m |   useEffect(() => {
+ [2m146[0m |     document.body.style.cursor = hovered ? 'pointer' : 'auto'
+ [2m147[0m |     return () => { document.body.style.cursor = 'auto' }
+ [2m148[0m |   }, [hovered])
+ [2m149[0m |   const hasAntenna = height > 8 && Math.random() > 0.5
+     : [33;1m        ^^^^^|^^^^[0m
+     :              [33;1m`-- [33;1m`hasAntenna` redefined here[0m[0m
+ [2m150[0m |   
+ [2m151[0m |   // Memoize texture so we don't recreate canvas on every render
+ [2m152[0m |   const texture = useMemo(() => {
+     `----
+
+Import trace for requested module:
+./components/apps/github-city/GithubCity.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ✓ Compiled in 2.3s (3268 modules)
