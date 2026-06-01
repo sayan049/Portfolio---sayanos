@@ -477,47 +477,44 @@ export function resolveInput(raw: string): { iframeUrl: string; displayUrl: stri
   const trimmed = raw.trim()
   if (!trimmed) return { iframeUrl: '', displayUrl: '' }
 
-  // Already a proxy URL — keep as-is, just fix display
+  // Already a proxy URL
   if (trimmed.startsWith('/api/proxy?url=')) {
     return { iframeUrl: trimmed, displayUrl: iframeUrlToDisplay(trimmed) }
   }
 
-  // Already a YouTube embed — keep as-is
+  // Already a YouTube embed
   if (trimmed.includes('youtube.com/embed/')) {
     return { iframeUrl: trimmed, displayUrl: iframeUrlToDisplay(trimmed) }
   }
 
-  // Search query: has spaces OR no dot and no protocol
   const hasSpace = trimmed.includes(' ')
   const hasProtocol = trimmed.startsWith('http://') || trimmed.startsWith('https://')
   const hasDot = trimmed.includes('.')
   const isQuery = hasSpace || (!hasProtocol && !hasDot)
 
   if (isQuery) {
-    const search = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(trimmed)}`
-    return {
-      iframeUrl: `/api/proxy?url=${encodeURIComponent(search)}`,
-      displayUrl: trimmed,   // show what they typed, not the ddg url
-    }
-  }
-
-  // Add protocol if missing
-  const withProto = hasProtocol ? trimmed : `https://${trimmed}`
-
-  // Validate URL
-  let parsed: URL
-  try {
-    parsed = new URL(withProto)
-  } catch {
-    // Fallback: treat as search query
-    const search = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(trimmed)}`
+    // Use Brave Search — it works through proxy without bot detection
+    const search = `https://search.brave.com/search?q=${encodeURIComponent(trimmed)}&source=web`
     return {
       iframeUrl: `/api/proxy?url=${encodeURIComponent(search)}`,
       displayUrl: trimmed,
     }
   }
 
-  // YouTube watch / youtu.be → embed (iframe can show it directly)
+  const withProto = hasProtocol ? trimmed : `https://${trimmed}`
+
+  let parsed: URL
+  try {
+    parsed = new URL(withProto)
+  } catch {
+    const search = `https://search.brave.com/search?q=${encodeURIComponent(trimmed)}&source=web`
+    return {
+      iframeUrl: `/api/proxy?url=${encodeURIComponent(search)}`,
+      displayUrl: trimmed,
+    }
+  }
+
+  // YouTube watch → embed
   if (
     (parsed.hostname.includes('youtube.com') && parsed.pathname === '/watch') ||
     parsed.hostname === 'youtu.be'
@@ -525,7 +522,6 @@ export function resolveInput(raw: string): { iframeUrl: string; displayUrl: stri
     const vid = parsed.hostname === 'youtu.be'
       ? parsed.pathname.slice(1)
       : parsed.searchParams.get('v')
-
     if (vid) {
       return {
         iframeUrl: `https://www.youtube.com/embed/${vid}?autoplay=0`,
@@ -534,7 +530,7 @@ export function resolveInput(raw: string): { iframeUrl: string; displayUrl: stri
     }
   }
 
-  // youtube.com (channel, home, etc.) — proxy will intercept and redirect
+  // YouTube home/channel
   if (parsed.hostname.includes('youtube.com') || parsed.hostname === 'youtu.be') {
     return {
       iframeUrl: `/api/proxy?url=${encodeURIComponent(withProto)}`,
