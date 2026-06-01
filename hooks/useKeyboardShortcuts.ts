@@ -36,13 +36,20 @@ export function useKeyboardShortcuts() {
           document.documentElement.style.setProperty('--os-text',      '#EDEDF5')
         }, 4000)
       }
-      // Use Alt (Option on Mac) to avoid browser conflicts like Ctrl+T (New Tab)
+      // Ctrl + ` (Backquote) is the universal VS Code terminal shortcut and avoids dead keys
+      if (e.ctrlKey && e.code === 'Backquote') {
+        e.preventDefault()
+        openApp('terminal')
+        return
+      }
+
+      // Alt (Option) shortcuts for other apps. 
+      // Note: Option+I and Option+\` are "dead keys" on Mac, so we use Alt+A for AI assistant.
       if (e.altKey) {
         switch (e.code) {
-          case 'Backquote':
           case 'KeyT': e.preventDefault(); openApp('terminal');       break
           case 'KeyP': e.preventDefault(); openApp('projects');       break
-          case 'KeyI': e.preventDefault(); openApp('ai-assistant');   break
+          case 'KeyA': e.preventDefault(); openApp('ai-assistant');   break
           case 'KeyM': e.preventDefault(); openApp('system-monitor'); break
         }
       }
