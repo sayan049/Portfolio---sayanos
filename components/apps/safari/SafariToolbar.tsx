@@ -33,8 +33,8 @@ export function SafariToolbar() {
       && (finalUrl.includes('.') || finalUrl.startsWith('http'))
 
     if (!looksLikeUrl) {
-      // Search query → Google with inline UI parameter to allow iframe rendering
-      finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}&igu=1`
+      // Search query → DuckDuckGo HTML via proxy to allow click interception
+      finalUrl = `/api/proxy?url=${encodeURIComponent('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(finalUrl))}`
     } else {
       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
         finalUrl = 'https://' + finalUrl
@@ -52,6 +52,9 @@ export function SafariToolbar() {
       } else if (finalUrl.includes('linkedin.com') || finalUrl.includes('github.com') || finalUrl.includes('twitter.com') || finalUrl.includes('x.com')) {
         window.open(finalUrl, '_blank')
         return
+      } else {
+        // Route normal websites through proxy to bypass X-Frame-Options
+        finalUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`
       }
     }
     navigateSafariTab(finalUrl)

@@ -197,3 +197,5 @@ Import trace for requested module:
 ./components/os/Desktop.tsx
 ./components/os/OSRoot.tsx
  ✓ Compiled in 2.3s (3268 modules)
+ ✓ Compiled in 442ms (3268 modules)
+ ✓ Compiled in 204ms (3268 modules)
