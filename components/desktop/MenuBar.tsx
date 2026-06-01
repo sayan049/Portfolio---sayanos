@@ -29,7 +29,6 @@ export function MenuBar() {
   const toggleSound           = useOSStore(s => s.toggleSound)
   const showToast             = useOSStore(s => s.showToast)
   const openApp               = useOSStore(s => s.openApp)
-  const [logoClicks, setLogoClicks] = useState(0)
   
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
 

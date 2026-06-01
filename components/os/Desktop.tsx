@@ -18,7 +18,6 @@ import { CopilotWidget } from '@/components/desktop/CopilotWidget'
 
 export function Desktop() {
   const menuRef    = useRef<HTMLDivElement>(null)
-  const dockRef    = useRef<HTMLDivElement>(null)
   const clockRef   = useRef<HTMLDivElement>(null)
   const iconsRef   = useRef<HTMLDivElement>(null)
   const showToast  = useOSStore(s => s.showToast)

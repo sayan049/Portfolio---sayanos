@@ -6,9 +6,6 @@ import { History, X } from 'lucide-react'
 
 export type OSTheme = '1995' | '2007' | '2026'
 
-// Global Theme State (Local to component for ease, but affects entire document)
-let currentTheme: OSTheme = '2026'
-
 const THEME_STYLES = {
   '1995': `
     /* Windows 95 Theme Overrides */
@@ -99,7 +96,6 @@ export function TimeMachine() {
       document.head.appendChild(styleEl)
     }
     styleEl.innerHTML = THEME_STYLES[theme]
-    currentTheme = theme
   }, [theme])
 
   return (
