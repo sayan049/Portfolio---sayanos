@@ -26,8 +26,9 @@ content: [
         'os-text-4':    '#303045',
       },
       fontFamily: {
-        geist: ['var(--font-geist-sans)', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-        mono:  ['var(--font-geist-mono)', 'IBM Plex Mono', 'ui-monospace', 'Menlo', 'monospace'],
+        sans: ['var(--font-lexend-deca)', 'sans-serif'],
+        mono: ['var(--font-roboto-mono)', 'monospace'],
+        geist: ['var(--font-lexend-deca)', 'sans-serif'], // Fallback for any old usage
       },
       borderRadius: {
         window: '12px',

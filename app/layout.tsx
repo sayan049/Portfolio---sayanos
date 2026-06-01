@@ -1,7 +1,18 @@
 import type { Metadata } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
+import { Lexend_Deca, Roboto_Mono } from 'next/font/google'
 import './globals.css'
+
+const lexendDeca = Lexend_Deca({
+  subsets: ['latin'],
+  variable: '--font-lexend-deca',
+  display: 'swap',
+})
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  variable: '--font-roboto-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SayanOS — Sayan Patra',
@@ -23,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${lexendDeca.variable} ${robotoMono.variable}`}
     >
       <body className="noise-grain">
         {children}
