@@ -11,12 +11,12 @@ import { sleep } from '@/lib/utils'
 
 // ── Welcome ASCII banner ────────────────────────────────────────────────────
 const WELCOME_LINES: { text: string; type: TerminalLine['type'] }[] = [
-  { text: '  ███████╗ █████╗ ██╗   ██╗ █████╗ ███╗   ██╗ ██████╗ ███████╗', type: 'cyan' },
-  { text: '  ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗████╗  ██║██╔═══██╗██╔════╝', type: 'cyan' },
-  { text: '  ███████╗███████║ ╚████╔╝ ███████║██╔██╗ ██║██║   ██║███████╗', type: 'cyan' },
-  { text: '  ╚════██║██╔══██║  ╚██╔╝  ██╔══██║██║╚██╗██║██║   ██║╚════██║', type: 'cyan' },
-  { text: '  ███████║██║  ██║   ██║   ██║  ██║██║ ╚████║╚██████╔╝███████║', type: 'cyan' },
-  { text: '  ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝', type: 'cyan' },
+  { text: '   ____                        ___  ____', type: 'cyan' },
+  { text: '  / ___|  __ _ _   _  __ _ _ __ / _ \\/ ___|', type: 'cyan' },
+  { text: '  \\___ \\ / _` | | | |/ _` | \'_ \\ | | \\___ \\', type: 'cyan' },
+  { text: '   ___) | (_| | |_| | (_| | | | | |_| |___) |', type: 'cyan' },
+  { text: '  |____/ \\__,_|\\__, |\\__,_|_| |_|\\___/|____/', type: 'cyan' },
+  { text: '               |___/', type: 'cyan' },
   { text: '', type: 'dim' },
   { text: '  Personal Engineering OS  v1.0.0  ·  Built by Sayan Patra', type: 'dim' },
   { text: '  ──────────────────────────────────────────────────────────', type: 'dim' },
@@ -247,8 +247,7 @@ export function Terminal() {
     }
     
     if (cmd === 'sudo rm -rf /') {
-      const triggerGlitch = useOSStore.getState().triggerGlitch
-      triggerGlitch()
+      window.dispatchEvent(new CustomEvent('SYSTEM_HACK'))
       setLines(prev => [...prev,
         { id: nextId(), type: 'input',   content: cmd },
         { id: nextId(), type: 'error',   content: 'rm: it is dangerous to operate recursively on `/\'' },
@@ -260,11 +259,10 @@ export function Terminal() {
     }
 
     if (cmd === 'sudo hire sayan') {
-      window.dispatchEvent(new CustomEvent('SYSTEM_HACK'))
+      window.dispatchEvent(new CustomEvent('HIRE_SAYAN'))
       setLines(prev => [...prev,
         { id: nextId(), type: 'input',   content: cmd },
-        { id: nextId(), type: 'system',  content: '[SYSTEM] Protocol Omega Initiated.' },
-        { id: nextId(), type: 'success', content: '↳ Decrypting Top Secret Dossier...' },
+        { id: nextId(), type: 'system',  content: '↳ Excellent choice. Deploying contract overlay...' },
         { id: nextId(), type: 'dim',     content: '' },
       ])
       setInput(''); history.push(cmd); return
@@ -280,6 +278,7 @@ export function Terminal() {
       setReady(false)
       setInput('')
       setSuggestion('')
+      setMatrixMode(false)
       setTimeout(() => {
         runWelcome(() => false, () => { setReady(true); setTimeout(() => inputRef.current?.focus(), 50) })
       }, 80)

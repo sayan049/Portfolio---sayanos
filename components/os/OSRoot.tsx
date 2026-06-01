@@ -3,6 +3,7 @@
 import { useOSStore } from '@/stores/os.store'
 import { BootSequence } from '@/components/os/BootSequence'
 import { HackSequence } from '@/components/os/HackSequence'
+import { HireSequence } from '@/components/os/HireSequence'
 import { Desktop } from './Desktop'
 import { useState } from 'react'
 
@@ -17,6 +18,7 @@ export function OSRoot() {
         <>
           <Desktop />
           <HackSequence />
+          <HireSequence />
         </>
       )}
     </div>
