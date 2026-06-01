@@ -62,6 +62,11 @@ export async function GET(req: NextRequest) {
         html.substring(headEndIdx)
     }
 
+    // 1.2) If it's Bing, strip all their original scripts so they don't fire background CORS-violating AJAX requests
+    if (url.includes('bing.com')) {
+      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    }
+
     // 1.5) Rewrite absolute paths in HTML attributes to point to the original domain
     // so scripts that ignore <base> or use location.origin don't hit our local server.
     html = html.replace(/src="\/([^/])/g, `src="${base}/$1`)
