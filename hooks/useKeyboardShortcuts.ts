@@ -36,14 +36,14 @@ export function useKeyboardShortcuts() {
           document.documentElement.style.setProperty('--os-text',      '#EDEDF5')
         }, 4000)
       }
-
-      if (e.metaKey || e.ctrlKey) {
-        switch (e.key.toLowerCase()) {
-          case '`':
-          case 't': e.preventDefault(); openApp('terminal');       break
-          case 'p': e.preventDefault(); openApp('projects');       break
-          case 'i': e.preventDefault(); openApp('ai-assistant');   break
-          case 'm': e.preventDefault(); openApp('system-monitor'); break
+      // Use Alt (Option on Mac) to avoid browser conflicts like Ctrl+T (New Tab)
+      if (e.altKey) {
+        switch (e.code) {
+          case 'Backquote':
+          case 'KeyT': e.preventDefault(); openApp('terminal');       break
+          case 'KeyP': e.preventDefault(); openApp('projects');       break
+          case 'KeyI': e.preventDefault(); openApp('ai-assistant');   break
+          case 'KeyM': e.preventDefault(); openApp('system-monitor'); break
         }
       }
     }
