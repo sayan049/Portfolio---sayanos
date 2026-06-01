@@ -84,7 +84,7 @@ interface OSStore {
 const APP_IDS: AppId[] = [
   'finder', 'safari', 'terminal', 'projects', 'system-monitor',
   'timeline', 'ai-assistant', 'contact', 'resume', 'settings',
-  'vscode', 'resume-game', 'vision-control', 'analytics', 'negotiator'
+  'vscode', 'resume-game', 'vision-control', 'analytics', 'negotiator', 'github-city'
 ]
 
 function buildDefaultWindows(): Record<AppId, WindowState> {
