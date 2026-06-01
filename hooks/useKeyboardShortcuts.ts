@@ -39,6 +39,7 @@ export function useKeyboardShortcuts() {
 
       if (e.metaKey || e.ctrlKey) {
         switch (e.key.toLowerCase()) {
+          case '`':
           case 't': e.preventDefault(); openApp('terminal');       break
           case 'p': e.preventDefault(); openApp('projects');       break
           case 'i': e.preventDefault(); openApp('ai-assistant');   break
