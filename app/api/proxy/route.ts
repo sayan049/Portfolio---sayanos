@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     // Intercept YouTube at the proxy level (including Bing redirects that end up here)
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      let dest = 'https://www.bing.com/videos/search?q=youtube'
+      let dest = 'https://search.yahoo.com/search?p=youtube'
       if (url.includes('watch') || url.includes('youtu.be/')) {
         try {
           const urlObj = new URL(url.replace('youtu.be/', 'youtube.com/watch?v='))

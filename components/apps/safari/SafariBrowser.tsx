@@ -15,6 +15,17 @@ export function SafariBrowser() {
   // Google search works because we appended &igu=1 in SafariToolbar.
   // YouTube works because we rewrite to embed in SafariToolbar.
   const proxySrc = safariUrl
+  const navigateSafariTab = useOSStore(s => s.navigateSafariTab)
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'safari-navigate' && e.data.url) {
+        navigateSafariTab(e.data.url)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [navigateSafariTab])
 
   const handleLoad = () => {
     try {

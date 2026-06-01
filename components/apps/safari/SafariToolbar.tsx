@@ -36,7 +36,7 @@ export function SafariToolbar() {
       // Search query → Yahoo Search via proxy (bypasses bot protections on Vercel)
       finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=' + encodeURIComponent(finalUrl))}`
     } else {
-      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('/api/proxy')) {
         finalUrl = 'https://' + finalUrl
       }
 
@@ -48,11 +48,11 @@ export function SafariToolbar() {
           if (vid) finalUrl = `https://www.youtube.com/embed/${vid}?autoplay=1`
         } catch {}
       } else if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) {
-        finalUrl = `https://www.bing.com/videos/search?q=youtube`
+        finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=youtube')}`
       } else if (finalUrl.includes('linkedin.com') || finalUrl.includes('github.com') || finalUrl.includes('twitter.com') || finalUrl.includes('x.com')) {
         window.open(finalUrl, '_blank')
         return
-      } else {
+      } else if (!finalUrl.startsWith('/api/proxy')) {
         // Route normal websites through proxy to bypass X-Frame-Options
         finalUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`
       }
