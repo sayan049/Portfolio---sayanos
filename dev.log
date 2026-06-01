@@ -213,3 +213,73 @@ Import trace for requested module:
  ✓ Compiled in 150ms (3268 modules)
  ✓ Compiled in 139ms (3268 modules)
  ✓ Compiled in 214ms (3268 modules)
+ ⚠ ./components/apps/safari/NewTabPage.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/NewTabPage.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ⚠ ./components/apps/safari/NewTabPage.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/NewTabPage.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ⚠ ./components/apps/safari/NewTabPage.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/NewTabPage.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ⚠ ./components/apps/safari/NewTabPage.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/NewTabPage.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ⚠ ./components/apps/safari/NewTabPage.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/NewTabPage.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+
+./components/apps/safari/SafariToolbar.tsx
+Attempted import error: 'resolveInput' is not exported from '@/stores/os.store' (imported as 'resolveInput').
+
+Import trace for requested module:
+./components/apps/safari/SafariToolbar.tsx
+./components/apps/safari/Safari.tsx
+./components/windows/WindowManager.tsx
+./components/os/Desktop.tsx
+./components/os/OSRoot.tsx
+ ✓ Compiled in 156ms (3254 modules)
+ ✓ Compiled in 372ms (3254 modules)
+ ✓ Compiled in 462ms (3268 modules)
+ ✓ Compiled in 262ms (3268 modules)
+ ✓ Compiled in 187ms (3268 modules)
+ ✓ Compiled in 151ms (3268 modules)
+ ✓ Compiled in 198ms (3268 modules)
+ ✓ Compiled in 132ms (3268 modules)
+ ✓ Compiled in 141ms (3268 modules)
+ ✓ Compiled in 132ms (3268 modules)
+ ✓ Compiled in 126ms (3268 modules)
+ ✓ Compiled in 125ms (3268 modules)
+ ✓ Compiled in 123ms (3268 modules)
+ ✓ Compiled in 193ms (3268 modules)
+ ✓ Compiled in 123ms (3268 modules)

@@ -1,110 +1,235 @@
-import { useState, useEffect } from 'react'
-import { useOSStore } from '@/stores/os.store'
-import { ChevronLeft, ChevronRight, RotateCw, Shield } from 'lucide-react'
+// import { useState, useEffect } from 'react'
+// import { useOSStore } from '@/stores/os.store'
+// import { ChevronLeft, ChevronRight, RotateCw, Shield } from 'lucide-react'
+
+// export function SafariToolbar() {
+//   const safariUrl = useOSStore(s => s.safariUrl)
+//   const setSafariUrl = useOSStore(s => s.setSafariUrl)
+//   const addSafariTab = useOSStore(s => s.addSafariTab)
+
+//   const activeTabId = useOSStore(s => s.activeSafariTabId)
+//   const tabs = useOSStore(s => s.safariTabs)
+//   const activeTab = tabs.find(t => t.id === activeTabId)
+
+//   const canGoBack = activeTab ? activeTab.historyIndex > 0 : false
+//   const canGoForward = activeTab ? activeTab.historyIndex < activeTab.history.length - 1 : false
+
+//   const navigateSafariTab = useOSStore(s => s.navigateSafariTab)
+//   const goBackSafari = useOSStore(s => s.goBackSafari)
+//   const goForwardSafari = useOSStore(s => s.goForwardSafari)
+
+//   const [inputVal, setInputVal] = useState(safariUrl)
+
+//   useEffect(() => {
+//     setInputVal(safariUrl)
+//   }, [safariUrl])
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault()
+//     let finalUrl = inputVal.trim()
+//     if (!finalUrl) return
+
+//     const looksLikeUrl = !finalUrl.includes(' ')
+//       && (finalUrl.includes('.') || finalUrl.startsWith('http'))
+
+//     if (!looksLikeUrl) {
+//       // Search query → Yahoo Search via proxy (bypasses bot protections on Vercel)
+//       finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=' + encodeURIComponent(finalUrl))}`
+//     } else {
+//       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('/api/proxy')) {
+//         finalUrl = 'https://' + finalUrl
+//       }
+
+//       // Check for youtube.com
+//       if (finalUrl.includes('youtube.com/watch') || finalUrl.includes('youtu.be/')) {
+//         try {
+//           const urlObj = new URL(finalUrl.replace('youtu.be/', 'youtube.com/watch?v='))
+//           const vid = urlObj.searchParams.get('v')
+//           if (vid) finalUrl = `https://www.youtube.com/embed/${vid}?autoplay=1`
+//         } catch {}
+//       } else if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) {
+//         finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=youtube')}`
+//       } else if (finalUrl.includes('linkedin.com') || finalUrl.includes('github.com') || finalUrl.includes('twitter.com') || finalUrl.includes('x.com')) {
+//         window.open(finalUrl, '_blank')
+//         return
+//       } else if (!finalUrl.startsWith('/api/proxy')) {
+//         // Route normal websites through proxy to bypass X-Frame-Options
+//         finalUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`
+//       }
+//     }
+//     navigateSafariTab(finalUrl)
+//   }
+
+//   const handleReload = () => {
+//     if (safariUrl) navigateSafariTab(safariUrl)
+//   }
+
+//   return (
+//     <div className="flex items-center gap-4 px-4 py-2 border-b border-white/5 bg-[#202028]">
+//       <div className="flex items-center gap-2 text-white/50">
+//         <button 
+//           className="p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+//           onClick={goBackSafari}
+//           disabled={!canGoBack}
+//         >
+//           <ChevronLeft size={16} />
+//         </button>
+//         <button 
+//           className="p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+//           onClick={goForwardSafari}
+//           disabled={!canGoForward}
+//         >
+//           <ChevronRight size={16} />
+//         </button>
+//         <button 
+//           className="p-1 hover:bg-white/10 rounded"
+//           onClick={handleReload}
+//         >
+//           <RotateCw size={14} />
+//         </button>
+//       </div>
+
+//       <form onSubmit={handleSubmit} className="flex-1 max-w-2xl mx-auto flex items-center bg-[#141418] rounded-md px-3 py-1.5 border border-white/10">
+//         <Shield size={14} className="text-white/40 mr-2" />
+//         <input 
+//           type="text" 
+//           value={inputVal}
+//           onChange={(e) => setInputVal(e.target.value)}
+//           placeholder="Search or enter website name"
+//           className="bg-transparent border-none outline-none w-full text-sm text-white/90 placeholder:text-white/30"
+//         />
+//       </form>
+
+//       <div className="flex items-center gap-2">
+//         <button className="p-1 hover:bg-white/10 rounded text-white/50" onClick={() => addSafariTab('')}>
+//           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+//         </button>
+//       </div>
+//     </div>
+//   )
+// }
+import { useState, useEffect, useRef } from 'react'
+import { useOSStore, resolveInput } from '@/stores/os.store'
+import { ChevronLeft, ChevronRight, RotateCw, Shield, X, Plus } from 'lucide-react'
 
 export function SafariToolbar() {
-  const safariUrl = useOSStore(s => s.safariUrl)
-  const setSafariUrl = useOSStore(s => s.setSafariUrl)
-  const addSafariTab = useOSStore(s => s.addSafariTab)
-  
-  const activeTabId = useOSStore(s => s.activeSafariTabId)
   const tabs = useOSStore(s => s.safariTabs)
-  const activeTab = tabs.find(t => t.id === activeTabId)
-
-  const canGoBack = activeTab ? activeTab.historyIndex > 0 : false
-  const canGoForward = activeTab ? activeTab.historyIndex < activeTab.history.length - 1 : false
-
+  const activeSafariTabId = useOSStore(s => s.activeSafariTabId)
   const navigateSafariTab = useOSStore(s => s.navigateSafariTab)
   const goBackSafari = useOSStore(s => s.goBackSafari)
   const goForwardSafari = useOSStore(s => s.goForwardSafari)
-  
-  const [inputVal, setInputVal] = useState(safariUrl)
+  const addSafariTab = useOSStore(s => s.addSafariTab)
 
+  const activeTab = tabs.find(t => t.id === activeSafariTabId)
+  const canGoBack = (activeTab?.historyIndex ?? 0) > 0
+  const canGoForward = (activeTab?.historyIndex ?? 0) < (activeTab?.history.length ?? 1) - 1
+  const isLoading = activeTab?.isLoading ?? false
+
+  // Address bar shows displayUrl (clean), not the proxy url
+  const [inputVal, setInputVal] = useState(activeTab?.displayUrl ?? '')
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Sync when active tab or its displayUrl changes (but not while user is typing)
   useEffect(() => {
-    setInputVal(safariUrl)
-  }, [safariUrl])
+    if (!focused) {
+      setInputVal(activeTab?.displayUrl ?? '')
+    }
+  }, [activeTab?.displayUrl, activeSafariTabId, focused])
+
+  const commit = (raw: string) => {
+    const { iframeUrl, displayUrl } = resolveInput(raw)
+    if (iframeUrl) navigateSafariTab(iframeUrl, displayUrl)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    let finalUrl = inputVal.trim()
-    if (!finalUrl) return
-
-    const looksLikeUrl = !finalUrl.includes(' ')
-      && (finalUrl.includes('.') || finalUrl.startsWith('http'))
-
-    if (!looksLikeUrl) {
-      // Search query → Yahoo Search via proxy (bypasses bot protections on Vercel)
-      finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=' + encodeURIComponent(finalUrl))}`
-    } else {
-      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('/api/proxy')) {
-        finalUrl = 'https://' + finalUrl
-      }
-
-      // Check for youtube.com
-      if (finalUrl.includes('youtube.com/watch') || finalUrl.includes('youtu.be/')) {
-        try {
-          const urlObj = new URL(finalUrl.replace('youtu.be/', 'youtube.com/watch?v='))
-          const vid = urlObj.searchParams.get('v')
-          if (vid) finalUrl = `https://www.youtube.com/embed/${vid}?autoplay=1`
-        } catch {}
-      } else if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) {
-        finalUrl = `/api/proxy?url=${encodeURIComponent('https://search.yahoo.com/search?p=youtube')}`
-      } else if (finalUrl.includes('linkedin.com') || finalUrl.includes('github.com') || finalUrl.includes('twitter.com') || finalUrl.includes('x.com')) {
-        window.open(finalUrl, '_blank')
-        return
-      } else if (!finalUrl.startsWith('/api/proxy')) {
-        // Route normal websites through proxy to bypass X-Frame-Options
-        finalUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`
-      }
-    }
-    navigateSafariTab(finalUrl)
+    commit(inputVal)
+    inputRef.current?.blur()
   }
 
   const handleReload = () => {
-    if (safariUrl) navigateSafariTab(safariUrl)
+    if (activeTab?.url) navigateSafariTab(activeTab.url, activeTab.displayUrl)
   }
 
   return (
-    <div className="flex items-center gap-4 px-4 py-2 border-b border-white/5 bg-[#202028]">
-      <div className="flex items-center gap-2 text-white/50">
-        <button 
-          className="p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+    <div className="flex items-center gap-3 px-4 py-2 bg-[#202028] border-b border-white/5">
+
+      {/* Back / Forward / Reload */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button
           onClick={goBackSafari}
           disabled={!canGoBack}
+          title="Back"
+          className="p-1.5 rounded text-white/50 hover:bg-white/10 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft size={16} />
         </button>
-        <button 
-          className="p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+        <button
           onClick={goForwardSafari}
           disabled={!canGoForward}
+          title="Forward"
+          className="p-1.5 rounded text-white/50 hover:bg-white/10 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight size={16} />
         </button>
-        <button 
-          className="p-1 hover:bg-white/10 rounded"
+        <button
           onClick={handleReload}
+          title="Reload"
+          className="p-1.5 rounded text-white/50 hover:bg-white/10 transition-colors"
         >
-          <RotateCw size={14} />
+          <RotateCw size={14} className={isLoading ? 'animate-spin text-[#4FC3F7]' : ''} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 max-w-2xl mx-auto flex items-center bg-[#141418] rounded-md px-3 py-1.5 border border-white/10">
-        <Shield size={14} className="text-white/40 mr-2" />
-        <input 
-          type="text" 
+      {/* Address bar */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex-1 flex items-center bg-[#141418] rounded-lg px-3 py-1.5 border border-white/10 focus-within:border-[#4FC3F7]/50 transition-colors"
+      >
+        <Shield size={13} className="text-white/30 mr-2 flex-shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
           value={inputVal}
-          onChange={(e) => setInputVal(e.target.value)}
-          placeholder="Search or enter website name"
-          className="bg-transparent border-none outline-none w-full text-sm text-white/90 placeholder:text-white/30"
+          onChange={e => setInputVal(e.target.value)}
+          onFocus={() => {
+            setFocused(true)
+            setTimeout(() => inputRef.current?.select(), 0)
+          }}
+          onBlur={() => {
+            setFocused(false)
+            // Restore display url if user didn't navigate
+            setInputVal(activeTab?.displayUrl ?? '')
+          }}
+          placeholder="Search anything or enter a URL…"
+          className="bg-transparent outline-none w-full text-sm text-white/90 placeholder:text-white/30"
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
         />
+        {/* Clear button — only while focused */}
+        {focused && inputVal && (
+          <button
+            type="button"
+            onMouseDown={e => e.preventDefault()} // keep focus on input
+            onClick={() => setInputVal('')}
+            className="ml-1 text-white/30 hover:text-white/60 flex-shrink-0"
+          >
+            <X size={13} />
+          </button>
+        )}
       </form>
 
-      <div className="flex items-center gap-2">
-        <button className="p-1 hover:bg-white/10 rounded text-white/50" onClick={() => addSafariTab('')}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
-      </div>
+      {/* New tab */}
+      <button
+        onClick={() => addSafariTab()}
+        title="New Tab"
+        className="p-1.5 rounded text-white/50 hover:bg-white/10 transition-colors flex-shrink-0"
+      >
+        <Plus size={16} />
+      </button>
     </div>
   )
 }
