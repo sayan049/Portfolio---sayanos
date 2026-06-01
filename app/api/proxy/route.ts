@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
         html.substring(headEndIdx)
     }
 
-    // 1.2) If it's Bing, strip all their original scripts so they don't fire background CORS-violating AJAX requests
-    if (url.includes('bing.com')) {
+    // 1.2) If it's Bing or Yahoo, strip all their original scripts so they don't fire background CORS-violating AJAX requests
+    if (url.includes('bing.com') || url.includes('yahoo.com')) {
       html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     }
 
