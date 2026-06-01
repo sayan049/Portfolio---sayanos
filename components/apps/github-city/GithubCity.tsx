@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, Text } from '@react-three/drei'
+import { OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 
 interface ContributionDay {
@@ -77,7 +77,10 @@ export function GithubCity() {
         <spotLight position={[-10, 20, 20]} angle={0.3} penumbra={1} intensity={1} color="#00f2fe" />
         <spotLight position={[20, 20, -10]} angle={0.3} penumbra={1} intensity={1} color="#ff0055" />
         
-        <CityGrid data={data} />
+        <Suspense fallback={null}>
+          <CityGrid data={data} />
+          <Environment preset="city" />
+        </Suspense>
 
         <OrbitControls 
           enablePan={false} 
@@ -85,7 +88,6 @@ export function GithubCity() {
           minDistance={20}
           maxDistance={100}
         />
-        <Environment preset="city" />
       </Canvas>
     </div>
   )

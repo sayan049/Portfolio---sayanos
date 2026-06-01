@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
+    "@react-three/drei": "^9.121.3",
+    "@react-three/fiber": "^8.17.14",
     "@tensorflow-models/handpose": "^0.1.0",
     "@tensorflow/tfjs": "^4.22.0",
     "canvas-confetti": "^1.9.4",
