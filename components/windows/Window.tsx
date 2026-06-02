@@ -221,6 +221,7 @@ export function Window({ id, children }: WindowProps) {
       {win.isOpen && (
         <motion.div
           key={id}
+          className="os-window"
           variants={windowVariants}
           custom={{ dx, dy, scaleX: customScaleX, scaleY: customScaleY }}
           initial="initial"

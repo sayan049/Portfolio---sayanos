@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@react-three/drei": "^9.121.3",
-    "@react-three/fiber": "^8.17.14",
+    "@react-three/drei": "^9.106.0",
+    "@react-three/fiber": "^8.16.8",
     "@tensorflow-models/handpose": "^0.1.0",
     "@tensorflow/tfjs": "^4.22.0",
     "canvas-confetti": "^1.9.4",
@@ -27,7 +27,7 @@
     "react-markdown": "^10.1.0",
     "react-webcam": "^7.2.0",
     "recharts": "^3.8.1",
-    "three": "^0.184.0",
+    "three": "^0.165.0",
     "zustand": "^5.0.13"
   },
   "devDependencies": {

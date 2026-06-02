@@ -7,7 +7,8 @@ import { useOSStore } from '@/stores/os.store'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { MenuBar } from '@/components/desktop/MenuBar'
 import { Dock } from '@/components/desktop/Dock'
-import { Wallpaper } from '@/components/desktop/Wallpaper'
+import dynamic from 'next/dynamic'
+const Wallpaper3D = dynamic(() => import('@/components/desktop/Wallpaper3D').then(m => m.Wallpaper3D), { ssr: false })
 import { DesktopIcons } from '@/components/desktop/DesktopIcons'
 import { WindowManager } from '@/components/windows/WindowManager'
 import { ClockWidget } from '@/components/desktop/Widgets/ClockWidget'
@@ -66,7 +67,7 @@ export function Desktop() {
   return (
     <div className={`fixed inset-0 overflow-hidden ${isGlitching ? 'os-glitch' : ''}`} style={{ background: 'var(--os-bg)' }}>
       {/* Wallpaper layer */}
-      <Wallpaper />
+      <Wallpaper3D />
       
       {/* Multiplayer Cursors */}
 

@@ -455,7 +455,7 @@ export function GithubCity() {
         <color attach="background" args={['#030305']} />
         
         {/* Cyberpunk Fog */}
-        <fogExp2 attach="fog" color="#030305" density={0.015} />
+        <fogExp2 attach="fog" args={['#030305', 0.015]} />
 
         {/* Ambient & Directed Lights */}
         <ambientLight intensity={0.4} />
