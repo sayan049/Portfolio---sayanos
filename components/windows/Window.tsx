@@ -16,8 +16,6 @@ interface WindowProps {
 
 type ResizeEdge = 't' | 'b' | 'l' | 'r' | 'tl' | 'tr' | 'bl' | 'br'
 
-// ── Genie animation ────────────────────────────────────────────────────────
-// Window is "sucked" toward dock bottom-centre like real SayanOS.
 const windowVariants: Variants = {
   initial: {
     opacity: 0,
@@ -30,21 +28,22 @@ const windowVariants: Variants = {
     scale:    1,
     scaleX:   1,
     scaleY:   1,
+    x:        0,
     y:        0,
     transition: { type: 'spring', stiffness: 340, damping: 28, mass: 0.9 },
   },
-  minimized: {
-    // Squeeze horizontally at the bottom (genie squish toward dock)
-    scaleX:  [1, 0.7,  0.08],
-    scaleY:  [1, 0.55, 0.04],
-    y:       [0, 120,  600],
-    opacity: [1, 0.9,  0],
+  minimized: (custom: { dx: number, dy: number, scaleX: number, scaleY: number }) => ({
+    x:       custom.dx,
+    y:       custom.dy,
+    scaleX:  custom.scaleX,
+    scaleY:  custom.scaleY,
+    opacity: [1, 0.9, 0], // Sucks into the dock, stays mostly visible until the end
     transition: {
-      duration: 0.42,
-      times:    [0, 0.35, 1],
-      ease:     ['easeIn', 'easeIn'],
+      duration: 0.45,
+      ease: [0.32, 0, 0.1, 1], // Classic Apple fluid ease
+      opacity: { duration: 0.15, delay: 0.3 }
     },
-  },
+  }),
   closed: {
     opacity: 0,
     scale:   0.92,
@@ -160,6 +159,35 @@ export function Window({ id, children }: WindowProps) {
         borderRadius: 12,
       }
 
+  // ── Calculate Genie Dock Target ────────────────────────────
+  let dx = 0, dy = 600, customScaleX = 0.05, customScaleY = 0.05
+  if (typeof window !== 'undefined') {
+    const dockEl = document.getElementById(`dock-icon-${id}`)
+    if (dockEl) {
+      const dockRect = dockEl.getBoundingClientRect()
+      
+      const winW = isMaximized ? window.innerWidth : win.size.width
+      const winH = isMaximized ? (window.innerHeight - DOCK_HEIGHT) : win.size.height
+      const winX = isMaximized ? 0 : win.position.x
+      const winY = isMaximized ? 0 : win.position.y
+
+      // Transform origin is 'bottom center', so we base calculations on that point
+      const winBottomCenterX = winX + winW / 2
+      const winBottomCenterY = winY + winH
+
+      const dockCenterX = dockRect.left + dockRect.width / 2
+      const dockCenterY = dockRect.top + dockRect.height / 2
+
+      dx = dockCenterX - winBottomCenterX
+      // Slight offset so it sucks exactly into the icon's visual center
+      dy = dockCenterY - winBottomCenterY
+
+      // Avoid division by zero
+      customScaleX = Math.max(0.01, dockRect.width / winW)
+      customScaleY = Math.max(0.01, dockRect.height / winH)
+    }
+  }
+
   const renderSnapPreview = () => {
     if (!snapPreview) return null
     const w = window.innerWidth
@@ -194,6 +222,7 @@ export function Window({ id, children }: WindowProps) {
         <motion.div
           key={id}
           variants={windowVariants}
+          custom={{ dx, dy, scaleX: customScaleX, scaleY: customScaleY }}
           initial="initial"
           animate={win.isMinimized ? 'minimized' : 'open'}
           exit="closed"

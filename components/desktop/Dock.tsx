@@ -47,6 +47,7 @@ function DockIcon({
     <div className="flex flex-col items-center" style={{ position: 'relative' }}>
       <motion.div
         ref={ref}
+        id={`dock-icon-${id}`}
         animate={{ width: BASE_SIZE * scale, height: BASE_SIZE * scale }}
         transition={{ type: 'spring', stiffness: 320, damping: 22 }}
         onClick={() => openApp(id)}
