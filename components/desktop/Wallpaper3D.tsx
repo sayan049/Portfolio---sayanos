@@ -10,7 +10,7 @@ const PARTICLE_COUNT = 15000
 
 function MorphingParticles({ progress }: { progress: any }) {
   const pointsRef = useRef<THREE.Points>(null)
-  
+
   // Track global mouse because canvas might be covered by desktop UI layers
   const globalMouse = useRef({ x: 0, y: 0 })
   useEffect(() => {
@@ -24,13 +24,13 @@ function MorphingParticles({ progress }: { progress: any }) {
 
   // We need to keep track of current positions and velocities
   const [isReady, setIsReady] = useState(false)
-  
+
   const { positions, velocities, prm } = useMemo(() => {
     if (typeof window === 'undefined') return { positions: null, velocities: null, prm: null }
 
     const pos = new Float32Array(PARTICLE_COUNT * 3)
     const vel = new Float32Array(PARTICLE_COUNT * 3)
-    
+
     const textCoords = new Float32Array(PARTICLE_COUNT * 3)
     const waveXZ = new Float32Array(PARTICLE_COUNT * 2)
     const lineX = new Float32Array(PARTICLE_COUNT)
@@ -53,8 +53,8 @@ function MorphingParticles({ progress }: { progress: any }) {
       ctx.fillText('SAYANOS', 400, 100)
       const imgData = ctx.getImageData(0, 0, 800, 200).data
       const validPixels = []
-      for (let y = 0; y < 200; y+=2) {
-        for (let x = 0; x < 800; x+=2) {
+      for (let y = 0; y < 200; y += 2) {
+        for (let x = 0; x < 800; x += 2) {
           const idx = (y * 800 + x) * 4
           if (imgData[idx] > 128) {
             // Smaller spread multiplier (0.04 instead of 0.05)
@@ -66,12 +66,12 @@ function MorphingParticles({ progress }: { progress: any }) {
         const p = validPixels[i % validPixels.length]
         const idx = i * 3
         textCoords[idx] = p.x + (Math.random() - 0.5) * 0.1
-        textCoords[idx+1] = p.y + (Math.random() - 0.5) * 0.1
-        textCoords[idx+2] = (Math.random() - 0.5) * 0.5
-        
+        textCoords[idx + 1] = p.y + (Math.random() - 0.5) * 0.1
+        textCoords[idx + 2] = (Math.random() - 0.5) * 0.5
+
         pos[idx] = textCoords[idx]
-        pos[idx+1] = textCoords[idx+1]
-        pos[idx+2] = textCoords[idx+2]
+        pos[idx + 1] = textCoords[idx + 1]
+        pos[idx + 2] = textCoords[idx + 2]
       }
     }
 
@@ -98,8 +98,8 @@ function MorphingParticles({ progress }: { progress: any }) {
       const theta = r * 0.6 + armOffset + (Math.random() - 0.5) * 0.4 // spiral
       const yOffset = (Math.random() - 0.5) * (6 / (r + 0.2)) // dense center vertical
       bhPolar[idx] = r
-      bhPolar[idx+1] = theta
-      bhPolar[idx+2] = yOffset
+      bhPolar[idx + 1] = theta
+      bhPolar[idx + 2] = yOffset
     }
 
     // --- 5. DNA Double Helix (Custom Shape) ---
@@ -108,20 +108,20 @@ function MorphingParticles({ progress }: { progress: any }) {
       const length = 40
       const radius = 5
       const turns = 3
-      
-      for (let i=0; i<3000; i++) {
+
+      for (let i = 0; i < 3000; i++) {
         const t = (i / 3000) * length - length / 2
         const angle = t * turns * 0.3
-        
+
         // Strand 1
         points.push({ x: Math.cos(angle) * radius, y: t, z: Math.sin(angle) * radius })
         // Strand 2
         points.push({ x: Math.cos(angle + Math.PI) * radius, y: t, z: Math.sin(angle + Math.PI) * radius })
-        
+
         // Base pairs
         if (i % 40 === 0) {
-          for(let j=0; j<=15; j++) {
-            const bt = j/15
+          for (let j = 0; j <= 15; j++) {
+            const bt = j / 15
             points.push({
               x: Math.cos(angle) * radius * bt + Math.cos(angle + Math.PI) * radius * (1 - bt),
               y: t,
@@ -132,14 +132,14 @@ function MorphingParticles({ progress }: { progress: any }) {
       }
       return points
     }
-    
+
     const dnaPoints = generateDNAPoints()
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const p = dnaPoints[i % dnaPoints.length]
       const idx = i * 3
       laptopCoords[idx] = p.x + (Math.random() - 0.5) * 0.2
-      laptopCoords[idx+1] = p.y + (Math.random() - 0.5) * 0.2
-      laptopCoords[idx+2] = p.z + (Math.random() - 0.5) * 0.2
+      laptopCoords[idx + 1] = p.y + (Math.random() - 0.5) * 0.2
+      laptopCoords[idx + 2] = p.z + (Math.random() - 0.5) * 0.2
     }
 
     return { positions: pos, velocities: vel, prm: { textCoords, waveXZ, lineX, bhPolar, laptopCoords } }
@@ -154,7 +154,7 @@ function MorphingParticles({ progress }: { progress: any }) {
   useFrame((state) => {
     if (!pointsRef.current || !isReady || !positions || !prm || !velocities) return
     const posAttribute = pointsRef.current.geometry.attributes.position
-    
+
     const time = state.clock.elapsedTime
     const p = Math.max(0, Math.min(4, progress.get()))
     const stage = Math.floor(p)
@@ -193,22 +193,22 @@ function MorphingParticles({ progress }: { progress: any }) {
     // Mouse position mapped to 3D space using global mouse
     const mouseX = (globalMouse.current.x * state.viewport.width) / 2
     const mouseY = (globalMouse.current.y * state.viewport.height) / 2
-    
+
     const mouseVector = new THREE.Vector3(mouseX, mouseY, 0)
     mouseVector.applyEuler(new THREE.Euler(-pointsRef.current.rotation.x, -pointsRef.current.rotation.y, 0))
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3
-      
+
       // Calculate LIVE targets for each shape
       // 1. Text
       const textX = prm.textCoords[idx]
-      const textY = prm.textCoords[idx+1] + Math.sin(time * 2 + textX) * 0.1
-      const textZ = prm.textCoords[idx+2] + Math.sin(time * 3 + textY) * 0.2
+      const textY = prm.textCoords[idx + 1] + Math.sin(time * 2 + textX) * 0.1
+      const textZ = prm.textCoords[idx + 2] + Math.sin(time * 3 + textY) * 0.2
 
       // 2. Wave
-      const wX = prm.waveXZ[i*2]
-      const wZ = prm.waveXZ[i*2+1]
+      const wX = prm.waveXZ[i * 2]
+      const wZ = prm.waveXZ[i * 2 + 1]
       const wY = Math.sin(wX * 0.5 + time * 2) * 2 + Math.cos(wZ * 0.5 + time * 1.5) * 2
 
       // 3. Line Flow (Horizontal thick beam)
@@ -222,15 +222,15 @@ function MorphingParticles({ progress }: { progress: any }) {
       const bhRBase = prm.bhPolar[idx]
       let bhR = bhRBase - (time * 3) % 25 // move inward faster
       if (bhR < 0) bhR += 25
-      const bhTheta = prm.bhPolar[idx+1] + time * (8 / (bhR + 0.1))
+      const bhTheta = prm.bhPolar[idx + 1] + time * (8 / (bhR + 0.1))
       const bhX = bhR * Math.cos(bhTheta)
       const bhZ = bhR * Math.sin(bhTheta)
-      const bhY = prm.bhPolar[idx+2] * Math.sin(time * 2 + bhR) // pulsing thickness
+      const bhY = prm.bhPolar[idx + 2] * Math.sin(time * 2 + bhR) // pulsing thickness
 
       // 5. DNA Double Helix
       const lpX = prm.laptopCoords[idx]
-      const lpY = prm.laptopCoords[idx+1]
-      const lpZ = prm.laptopCoords[idx+2]
+      const lpY = prm.laptopCoords[idx + 1]
+      const lpZ = prm.laptopCoords[idx + 2]
 
       // Select targets to interpolate
       let t1X, t1Y, t1Z, t2X, t2Y, t2Z
@@ -246,11 +246,11 @@ function MorphingParticles({ progress }: { progress: any }) {
         t2X = bhX; t2Y = bhY; t2Z = bhZ;
       } else if (stage === 3) {
         t1X = bhX; t1Y = bhY; t1Z = bhZ;
-        t2X = lpX; t2Y = lpY; t2Z = lpZ; 
+        t2X = lpX; t2Y = lpY; t2Z = lpZ;
       } else {
         // stage === 4
         t1X = lpX; t1Y = lpY; t1Z = lpZ;
-        t2X = lpX; t2Y = lpY; t2Z = lpZ; 
+        t2X = lpX; t2Y = lpY; t2Z = lpZ;
       }
 
       // Interpolate
@@ -261,7 +261,7 @@ function MorphingParticles({ progress }: { progress: any }) {
       let cx = posAttribute.array[idx]
       let cy = posAttribute.array[idx + 1]
       let cz = posAttribute.array[idx + 2]
-      
+
       let vx = velocities[idx]
       let vy = velocities[idx + 1]
       let vz = velocities[idx + 2]
@@ -271,12 +271,12 @@ function MorphingParticles({ progress }: { progress: any }) {
       const dy = cy - mouseVector.y
       const dz = cz - mouseVector.z
       const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
-      
+
       // Make the expansion small and localized
       const isTextStage = p < 0.5;
       const hoverRadius = isTextStage ? 2.5 : 2.0;
       const hoverForce = isTextStage ? 0.03 : 0.02;
-      
+
       if (dist < hoverRadius) {
         const force = (hoverRadius - dist) * hoverForce
         vx += (dx / dist) * force
@@ -288,7 +288,7 @@ function MorphingParticles({ progress }: { progress: any }) {
       vx += (targetX - cx) * 0.05
       vy += (targetY - cy) * 0.05
       vz += (targetZ - cz) * 0.05
-      
+
       // Damping
       vx *= 0.88
       vy *= 0.88
@@ -302,7 +302,7 @@ function MorphingParticles({ progress }: { progress: any }) {
       posAttribute.array[idx + 1] = cy + vy
       posAttribute.array[idx + 2] = cz + vz
     }
-    
+
     posAttribute.needsUpdate = true
   })
 
@@ -313,13 +313,13 @@ function MorphingParticles({ progress }: { progress: any }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={PARTICLE_COUNT} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial 
-        size={0.06} 
-        color="#ffffff" 
-        transparent 
-        opacity={0.8} 
-        blending={THREE.AdditiveBlending} 
-        depthWrite={false} 
+      <pointsMaterial
+        size={0.06}
+        color="#ffffff"
+        transparent
+        opacity={0.8}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
       />
     </points>
   )
@@ -327,20 +327,20 @@ function MorphingParticles({ progress }: { progress: any }) {
 
 function SceneCamera({ progress }: { progress: any }) {
   const { camera } = useThree()
-  
+
   useFrame(() => {
     const p = progress.get()
-    
+
     // Zoom levels per stage
     let targetZ = 15
     if (p > 0.5 && p <= 1.5) targetZ = 20 // Wave
     if (p > 1.5 && p <= 2.5) targetZ = 30 // Line (needs far zoom to see length)
     if (p > 2.5 && p <= 3.5) targetZ = 35 // Blackhole (huge spiral)
     if (p > 3.5) targetZ = 25             // DNA
-    
+
     camera.position.z += (targetZ - camera.position.z) * 0.05
   })
-  
+
   return null
 }
 
@@ -368,7 +368,7 @@ export function Wallpaper3D() {
 
     const handleWheel = (e: WheelEvent) => {
       if ((e.target as Element).closest('.os-window, .os-dock, .menu-bar, .modal')) return;
-      
+
       const now = Date.now()
       if (now - lastScrollTime.current > 800) { // 800ms debounce
         if (e.deltaY > 20) {
@@ -418,25 +418,25 @@ export function Wallpaper3D() {
       </div>
 
       <div className="fixed inset-0 z-10 pointer-events-none flex items-center justify-center">
-        
+
         <motion.div style={{ opacity: o1 }} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">FLUIDITY</h2>
-          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Unbound by limits</p>
+          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">SAYAN PATRA</h2>
+          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Full Stack Developer & AI Engineer</p>
         </motion.div>
 
         <motion.div style={{ opacity: o2 }} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">VELOCITY</h2>
-          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Speed of light</p>
+          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">MY WORK</h2>
+          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Engineering Digital Experiences</p>
         </motion.div>
 
         <motion.div style={{ opacity: o3 }} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">SINGULARITY</h2>
-          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Infinite depth</p>
+          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">SAYAN OS</h2>
+          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">My Interactive Portfolio</p>
         </motion.div>
 
         <motion.div style={{ opacity: o4 }} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">GENESIS</h2>
-          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">The building blocks</p>
+          <h2 className="text-8xl font-black font-oxanium tracking-widest text-white drop-shadow-2xl mb-4">LET'S CONNECT</h2>
+          <p className="text-2xl text-white/60 font-mono tracking-[0.3em] uppercase">Available for new opportunities</p>
         </motion.div>
       </div>
     </div>
